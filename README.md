@@ -9,7 +9,7 @@ the exstention was purely made in educational purposes and does not serve any ha
 # Download instructions
 1. click on the green code button on the github page
   1.2 click download as ZIP
-2. open the downloaded file, you will probably see 'RoLight-Bypass-main' if you see this NOT zipped file, its correct, select it and move (extract) it to anywhere on your computer
+2. open the downloaded file, you will probably see 'RoLight-Bypass-main' if you see this NOT zipped file, its CORRECT, select it and move (extract) it to anywhere on your computer
 3. open google chrome exstention manager (chrome://extensions/)
 4. go to the place where you extracted the file
 5. drag the file into the google chrome window with the opened exstention manager
