@@ -18,10 +18,10 @@ alternative setup way:
 after step 3. click load unpacked, find your extracted file and open it
 
 # Use instructions
-when you open a roblox page it will automatically appear, to use it you must join any game, friend or pirvate server
-status meanings:
-idle - the exstention is waiting for you to join
-active - the exstention is currently bypassing the ban (this sometimes doesnt appear and stays on idle)
-failed/error - the exstention failed or an error occured, it will automatically re-try and if it doesnt work again it will stop
+- when you open a roblox page it will automatically appear, to use it you must join any game, friend or pirvate server
+- status meanings:
+- idle - the exstention is waiting for you to join
+- active - the exstention is currently bypassing the ban (this sometimes doesnt appear and stays on idle)
+- failed/error - the exstention failed or an error occured, it will automatically re-try and if it doesnt work again it will stop
 
-if it fails or you get an error, click the re attach button, this way you re attach the exstention to its data storage and to the roblox page
+! - if it fails or you get an error, click the re attach button, this way you re attach the exstention to its data storage and to the roblox page
