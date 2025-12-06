@@ -3,15 +3,25 @@
   "name": "RoLight Bypass",
   "version": "1.0",
   "description": "Roblox Game Bypass Tool",
-  "permissions": ["cookies", "storage", "activeTab", "scripting", "tabs"],
-  "host_permissions": ["*://*.roblox.com/*"],
+  "permissions": [
+    "cookies",
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "*://*.roblox.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": ["*://*.roblox.com/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_end"
     }
   ],
   "action": {
